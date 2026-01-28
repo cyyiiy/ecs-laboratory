@@ -19,7 +19,20 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ecs_code\ecs_example\componentA.cpp" />
+    <ClCompile Include="ecs_code\ecs_example\componentB.cpp" />
+    <ClCompile Include="ecs_code\ecs_manager\component.cpp" />
+    <ClCompile Include="ecs_code\ecs_manager\ecs.cpp" />
     <ClCompile Include="ecs_code\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ecs_code\ecs_example\componentA.h" />
+    <ClInclude Include="ecs_code\ecs_example\componentB.h" />
+    <ClInclude Include="ecs_code\ecs_manager\component.h" />
+    <ClInclude Include="ecs_code\ecs_manager\componentManager.h" />
+    <ClInclude Include="ecs_code\ecs_manager\componentSubList.h" />
+    <ClInclude Include="ecs_code\ecs_manager\ecs.h" />
+    <ClInclude Include="ecs_code\ecs_manager\ecs_merged.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
