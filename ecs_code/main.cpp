@@ -1,5 +1,6 @@
 #include <iostream>
 #include "ecs_manager/ecs.h"
+#include "ecs_manager/entity.h"
 #include "ecs_example/componentA.h"
 #include "ecs_example/componentB.h"
 
@@ -10,7 +11,7 @@ void testComponents()
     std::cout << "=============== ECS Test Components ===============\n";
     std::cout << "===================================================\n";
     
-    std::cout << "\n==> Creating two components of class ComponentB:\n";
+    std::cout << "\n==> Create two components of class ComponentB:\n";
     ComponentHandle componentB_1 = ECS::CreateComponent<ComponentB>();
     ComponentHandle componentB_2 = ECS::CreateComponent<ComponentB>();
     ECS::DebugECS();
@@ -53,9 +54,51 @@ void testComponents()
     ECS::DebugECS();
 }
 
+void testEntities()
+{
+    std::cout << "===================================================\n";
+    std::cout << "================ ECS Test Entities ================\n";
+    std::cout << "===================================================\n";
+    
+    std::cout << "\n==> Create an entity and a component on it:\n";
+    Entity entity1;
+    ComponentHandle handle = entity1.addComponentByClass<ComponentA>();
+    entity1.debugEntity();
+    ECS::DebugECS();
+    
+    std::cout << "\n==> Manipulate the component of the entity:\n";
+    ComponentA* component = entity1.getComponent<ComponentA>(handle);
+    component = entity1.getComponentOfClass<ComponentA>(); // Both gives the same result
+    component->setValue(1);
+    component->readValue();
+    
+    std::cout << "\n==> Create another entity with components inside a scope:\n";
+    {
+        Entity entity2;
+        entity2.addComponentByClass<ComponentA>();
+        entity2.addComponentByClass<ComponentB>();
+        entity2.addComponentByClass<ComponentB>();
+        entity2.debugEntity();
+        ECS::DebugECS();
+    }
+    
+    std::cout << "\n==> Exit the scope and execute ECS Delete Pendings:\n";
+    ECS::DeletePendings();
+    ECS::DebugECS();
+    
+    std::cout << "\n==> Remove the component from the first entity:\n";
+    entity1.removeComponent<ComponentA>(handle);
+    entity1.debugEntity();
+    
+    std::cout << "\n==> Execute ECS Delete Pendings:\n";
+    ECS::DeletePendings();
+    ECS::DebugECS();
+}
+
 int main()
 {
-    testComponents();
+    //testComponents();
+    testEntities();
     
     return 0;
 }
