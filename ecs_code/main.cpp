@@ -12,8 +12,8 @@ void testComponents()
     std::cout << "===================================================\n";
     
     std::cout << "\n==> Create two components of class ComponentB:\n";
-    ComponentHandle componentB_1 = ECS::CreateComponent<ComponentB>();
-    ComponentHandle componentB_2 = ECS::CreateComponent<ComponentB>();
+    ComponentHandle componentB_1 = ECS::CreateComponent<ComponentB>(nullptr);
+    ComponentHandle componentB_2 = ECS::CreateComponent<ComponentB>(nullptr);
     ECS::DebugECS();
     
     std::cout << "\n==> Set and read values to created components:\n";
@@ -37,13 +37,13 @@ void testComponents()
     ECS::Update(0.1f);
     
     std::cout << "\n==> Create two more components of class ComponentB:\n";
-    ECS::CreateComponent<ComponentB>();
-    ECS::CreateComponent<ComponentB>();
+    ECS::CreateComponent<ComponentB>(nullptr);
+    ECS::CreateComponent<ComponentB>(nullptr);
     ECS::DebugECS();
     
     std::cout << "\n==> Create ten components of class ComponentA:\n";
     for (int i = 0; i < 10; i++)
-        ECS::CreateComponent<ComponentA>();
+        ECS::CreateComponent<ComponentA>(nullptr);
     ECS::DebugECS();
     
     std::cout << "\n==> Execute ECS Update:\n";

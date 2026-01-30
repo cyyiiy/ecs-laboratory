@@ -1,5 +1,6 @@
 ﻿#pragma once
-#include <cstdint>
+
+class Entity; // Forward declaration
 
 
 template <class T>
@@ -24,6 +25,9 @@ public:
     void setPendingDelete(bool value);
     bool getPendingDelete() const;
     
+    void setOwner(Entity* ownerEntity);
+    Entity* getOwner() const;
+    
     /** Called after the component has been created. */
     virtual void init() {}
     
@@ -36,4 +40,6 @@ public:
 private:
     bool updateActivated{ true };
     bool pendingDelete{ false };
+    
+    Entity* owner{ nullptr };
 };

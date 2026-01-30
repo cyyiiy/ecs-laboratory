@@ -6,6 +6,7 @@
 
 #include "ecsTypes.h"
 #include "ecs.h"
+#include "component.h"
 
 
 struct StoredComponent
@@ -35,7 +36,7 @@ public:
         addComponentByClass()
     {
         ComponentTypeId type_id = GetComponentTypeId<T>();
-        ComponentHandle handle = ECS::CreateComponent<T>();
+        ComponentHandle handle = ECS::CreateComponent<T>(this);
         
         components[type_id].push_back(
             StoredComponent{

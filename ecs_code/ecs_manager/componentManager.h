@@ -30,7 +30,7 @@ private:
     std::vector<ComponentHandle> pendingComponents;
     
 public:
-    ComponentHandle CreateComponent()
+    ComponentHandle CreateComponent(class Entity* ownerEntity)
     {
         // Step 1: Find a sublist with a free component slot
         size_t sublistId = sublists.size();
@@ -69,8 +69,9 @@ public:
         --sublist_creating_in.freeSlots;
         
         // Step 3: Construct the component
-        new (sublist_creating_in.get(slotId)) T();
-        sublist_creating_in.get(slotId)->init();
+        T* component = new (sublist_creating_in.get(slotId)) T();
+        component->setOwner(ownerEntity);
+        component->init();
         
         // Step 4: Return the component handle
         const uint32_t generation = sublist_creating_in.generations[slotId];

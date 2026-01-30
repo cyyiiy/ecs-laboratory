@@ -28,9 +28,9 @@ public:
     }
     
     template <typename T>
-    static ComponentHandle CreateComponent()
+    static ComponentHandle CreateComponent(class Entity* ownerEntity)
     {
-        return Manager<T>().CreateComponent();
+        return Manager<T>().CreateComponent(ownerEntity);
     }
     
     template <typename T>
