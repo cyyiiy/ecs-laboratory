@@ -9,13 +9,6 @@ struct ComponentSublistSize
 };
 
 
-struct ComponentHandle
-{
-    uint32_t sublistId;
-    uint32_t slotId;
-    uint32_t generation;
-};
-
 class Component
 {
 public:

@@ -4,8 +4,8 @@
 #include <stdexcept>
 #include <string>
 #include <sstream>
-#include "component.h"
 #include "componentSubList.h"
+#include "ecsTypes.h"
 
 
 class IComponentManager
