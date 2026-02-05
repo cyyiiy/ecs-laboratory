@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "component.h"
+#include "behaviorComponent.h"
 #include "componentManager.h"
 
 
@@ -7,24 +8,45 @@ class ECS
 {
 private:
     static std::vector<IComponentManager*> managers;
+    static std::vector<IBehaviorManager*> behavior_managers;
     
 public:
     template <typename T>
     static ComponentManager<T, ComponentSublistSize<T>::value>& Manager()
     {
         constexpr std::size_t SublistSize = ComponentSublistSize<T>::value;
-        static ComponentManager<T, SublistSize> componentManager;
         
-        // Static local variable 'registered' allow the lambda to be executed only once for each component class
-        static bool registered = []
+        if constexpr (std::is_base_of_v<BehaviorComponent, T>)
         {
-            managers.push_back(&componentManager);
-            return true;
-        }();
+            static BehaviorManager<T, SublistSize> behaviorManager;
+            
+            // Static local variable 'registered' allow the lambda to be executed only once for each component class
+            static bool registered = []
+            {
+                managers.push_back(&behaviorManager);
+                behavior_managers.push_back(&behaviorManager);
+                return true;
+            }();
         
-        (void)registered; // Tell the compiler that it's normal to keep 'registered' unused
+            (void)registered; // Tell the compiler that it's normal to keep 'registered' unused
         
-        return componentManager;
+            return behaviorManager;
+        }
+        else
+        {
+            static ComponentManager<T, SublistSize> componentManager;
+            
+            // Static local variable 'registered' allow the lambda to be executed only once for each component class
+            static bool registered = []
+            {
+                managers.push_back(&componentManager);
+                return true;
+            }();
+        
+            (void)registered; // Tell the compiler that it's normal to keep 'registered' unused
+        
+            return componentManager;
+        }
     }
     
     template <typename T>
@@ -47,9 +69,9 @@ public:
     
     static void Update(float deltaTime)
     {
-        for (IComponentManager* manager : managers)
+        for (IBehaviorManager* behavior_manager : behavior_managers)
         {
-            manager->UpdateComponents(deltaTime);
+            behavior_manager->UpdateComponents(deltaTime);
         }
     }
     

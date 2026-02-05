@@ -1,8 +1,8 @@
 ﻿#pragma once
-#include "../ecs_manager/component.h"
+#include "../ecs_manager/behaviorComponent.h"
 
 
-class ComponentB : public Component
+class ComponentB : public BehaviorComponent
 {
 public:
     void init() override;

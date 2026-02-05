@@ -3,6 +3,7 @@
 #include "ecs_manager/entity.h"
 #include "ecs_example/componentA.h"
 #include "ecs_example/componentB.h"
+#include "ecs_example/componentDataA.h"
 
 
 void testComponents()
@@ -37,9 +38,13 @@ void testComponents()
     ECS::Update(0.1f);
     
     std::cout << "\n==> Create two more components of class ComponentB:\n";
-    ECS::CreateComponent<ComponentB>(nullptr);
-    ECS::CreateComponent<ComponentB>(nullptr);
+    ComponentHandle componentB_3 = ECS::CreateComponent<ComponentB>(nullptr);
+    ComponentHandle componentB_4 = ECS::CreateComponent<ComponentB>(nullptr);
     ECS::DebugECS();
+    
+    std::cout << "\n==> Read values of created components (one is a reused from the one deleted earlier and one is brand new):\n";
+    ECS::GetComponent<ComponentB>(componentB_3).readValue();
+    ECS::GetComponent<ComponentB>(componentB_4).readValue();
     
     std::cout << "\n==> Create ten components of class ComponentA:\n";
     for (int i = 0; i < 10; i++)
@@ -78,6 +83,7 @@ void testEntities()
         entity2.addComponentByClass<ComponentA>();
         entity2.addComponentByClass<ComponentB>();
         entity2.addComponentByClass<ComponentB>();
+        entity2.addComponentByClass<ComponentDataA>();
         entity2.debugEntity();
         ECS::DebugECS();
     }

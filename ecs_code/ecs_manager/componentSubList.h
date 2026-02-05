@@ -13,6 +13,6 @@ public:
     
     T* get(size_t index)
     {
-        return reinterpret_cast<T*>(&components[index]);
+        return std::launder(reinterpret_cast<T*>(&components[index]));
     }
 };

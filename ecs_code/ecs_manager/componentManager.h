@@ -13,18 +13,16 @@ class IComponentManager
 public:
     virtual ~IComponentManager() = default;
     
-    virtual void UpdateComponents(float deltaTime) = 0;
     virtual void DeletePendingComponents() = 0;
     virtual void ClearAllComponents() = 0;
     
     virtual std::string DebugComponentManager() const = 0;
 };
 
-
 template <class T, size_t SublistSize>
-class ComponentManager final : public IComponentManager
+class ComponentManager : public IComponentManager
 {
-private:
+protected:
     using Sublist = ComponentSubList<T, SublistSize>;
     std::vector<std::unique_ptr<Sublist>> sublists;
     std::vector<ComponentHandle> pendingComponents;
@@ -71,7 +69,11 @@ public:
         // Step 3: Construct the component
         T* component = new (sublist_creating_in.get(slotId)) T();
         component->setOwner(ownerEntity);
-        component->init();
+        
+        if constexpr (std::is_base_of_v<BehaviorComponent, T>)
+        {
+            component->init();
+        }
         
         // Step 4: Return the component handle
         const uint32_t generation = sublist_creating_in.generations[slotId];
@@ -117,7 +119,10 @@ public:
                 throw std::runtime_error("Invalid component handle.");
             
             T* component = sublist.get(handle.slotId);
-            component->exit();
+            if constexpr (std::is_base_of_v<BehaviorComponent, T>)
+            {
+                component->exit();
+            }
         
             component->~T();
             ++sublist.generations[handle.slotId];
@@ -127,25 +132,6 @@ public:
         }
         
         pendingComponents.clear();
-    }
-    
-    // Note: Called automatically every frame by the system that manages the ECS globally
-    void UpdateComponents(float deltaTime) override
-    {
-        for (size_t i = 0; i < sublists.size(); i++)
-        {
-            Sublist& sublist = *sublists[i];
-            
-            for (size_t j = 0; j < SublistSize; j++)
-            {
-                if (!sublist.usedSlots[j]) continue;
-                
-                T* component = sublist.get(j);
-                if (!component->getUpdateActivated()) continue;
-                
-                component->update(deltaTime);
-            }
-        }
     }
     
     // Note: Could be called by the system that manages the ECS globally when closing the game for example
@@ -160,7 +146,10 @@ public:
                 if (!sublist.usedSlots[i]) continue;
                 
                 T* component = sublist.get(i);
-                component->exit();
+                if constexpr (std::is_base_of_v<BehaviorComponent, T>)
+                {
+                    component->exit();
+                }
                 component->~T();
                 
                 sublist.usedSlots[i] = false;
@@ -195,5 +184,37 @@ public:
         }
         
         return result.str();
+    }
+};
+
+
+class IBehaviorManager
+{
+public:
+    virtual void UpdateComponents(float deltaTime) = 0;
+};
+
+template <class T, size_t SublistSize>
+class BehaviorManager final : public ComponentManager<T, SublistSize>, public IBehaviorManager
+{
+public:
+    // Note: Called automatically every frame by the system that manages the ECS globally
+    void UpdateComponents(float deltaTime) override
+    {
+        auto& sublists = this->sublists;
+        for (size_t i = 0; i < sublists.size(); i++)
+        {
+            ComponentSubList<T, SublistSize>& sublist = *sublists[i];
+            
+            for (size_t j = 0; j < SublistSize; j++)
+            {
+                if (!sublist.usedSlots[j]) continue;
+                
+                T* component = sublist.get(j);
+                if (!component->getUpdateActivated()) continue;
+                
+                component->update(deltaTime);
+            }
+        }
     }
 };
