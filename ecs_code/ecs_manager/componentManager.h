@@ -22,7 +22,12 @@ public:
 template <class T, size_t SublistSize>
 class ComponentManager : public IComponentManager
 {
+    static_assert(std::is_base_of_v<Component, T>, "T must be derived from Component.");
+    static_assert(std::is_nothrow_move_constructible_v<T>, "T must be nothrow move constructible.");
+    
 protected:
+    static constexpr uint32_t INVALID_INDEX = std::numeric_limits<uint32_t>::max();
+    
     using Sublist = ComponentSubList<T, SublistSize>;
     std::vector<std::unique_ptr<Sublist>> sublists;
     std::vector<ComponentHandle> pendingComponents;
@@ -66,8 +71,16 @@ public:
         sublist_creating_in.usedSlots[slotId] = true;
         --sublist_creating_in.freeSlots;
         
-        // Step 3: Construct the component
-        T* component = new (sublist_creating_in.get(slotId)) T();
+        // Step 3: Set the packed index of the new component in the sublist
+        uint32_t packedIndex = static_cast<uint32_t>(sublist_creating_in.aliveCount++);
+        
+        sublist_creating_in.slotToPacked[slotId] = packedIndex;
+        sublist_creating_in.packedToSlot[packedIndex] = slotId;
+        
+        // Step 4: Construct the component
+        T* component = sublist_creating_in.packedGet(packedIndex);
+        
+        new (component) T();
         component->setOwner(ownerEntity);
         
         if constexpr (std::is_base_of_v<BehaviorComponent, T>)
@@ -75,11 +88,11 @@ public:
             component->init();
         }
         
-        // Step 4: Return the component handle
+        // Step 5: Return the component handle
         const uint32_t generation = sublist_creating_in.generations[slotId];
         return ComponentHandle{ 
-            static_cast<std::uint32_t>(sublistId), 
-            static_cast<std::uint32_t>(slotId),
+            static_cast<uint32_t>(sublistId), 
+            static_cast<uint32_t>(slotId),
             generation
         };
     }
@@ -103,7 +116,9 @@ public:
         if (sublist.generations[handle.slotId] != handle.generation)
             throw std::runtime_error("Invalid component handle.");
         
-        return *sublists[handle.sublistId]->get(handle.slotId);
+        const uint32_t packed_index = sublist.slotToPacked[handle.slotId];
+        
+        return *sublist.packedGet(packed_index);
     }
     
     // Note: Called automatically every frame by the system that manages the ECS globally
@@ -113,22 +128,49 @@ public:
         
         for (auto& handle : pendingComponents)
         {
+            // Step 1: Prepare the data
             Sublist& sublist = *sublists[handle.sublistId];
         
             if (sublist.generations[handle.slotId] != handle.generation)
-                throw std::runtime_error("Invalid component handle.");
+                continue;
             
-            T* component = sublist.get(handle.slotId);
+            const uint32_t packed_index = sublist.slotToPacked[handle.slotId]; // packed index of the pending deletion component
+            const uint32_t last_packed_index = static_cast<uint32_t>(sublist.aliveCount - 1); // packed index of the last alive component in the sublist
+            
+            T* component = sublist.packedGet(packed_index);
+            
+            // Step 2: Delete the pending deletion component
             if constexpr (std::is_base_of_v<BehaviorComponent, T>)
             {
                 component->exit();
             }
-        
             component->~T();
-            ++sublist.generations[handle.slotId];
-        
-            sublist.usedSlots[handle.slotId] = false;
+            
+            if (packed_index != last_packed_index)
+            {
+                // Step 3: Move the last alive component in the sublist to keep memory consistency
+                T* last_component = sublist.packedGet(last_packed_index);
+                
+                // Constructs a new T object at the memory address of the deleted component by using the move constructor
+                new (component) T(std::move(*last_component));
+                last_component->~T();
+                
+                // Step 4: Update the indirection table so the slot of the swapped component redirects to the new packed index
+                uint32_t swaped_comp_slot = sublist.packedToSlot[last_packed_index];
+                sublist.slotToPacked[swaped_comp_slot] = packed_index;
+                sublist.packedToSlot[packed_index] = swaped_comp_slot;
+            }
+            
+            // Step 4-bis: Properly resets the indirection table at indices of the deleted component
+            sublist.slotToPacked[handle.slotId] = INVALID_INDEX;
+            sublist.packedToSlot[last_packed_index] = INVALID_INDEX;
+            
+            // Step 5: Update sublist metadata
+            --sublist.aliveCount;
             ++sublist.freeSlots;
+            
+            ++sublist.generations[handle.slotId];
+            sublist.usedSlots[handle.slotId] = false;
         }
         
         pendingComponents.clear();
@@ -141,21 +183,26 @@ public:
         {
             Sublist& sublist = *sublist_ptr;
             
-            for (size_t i = 0; i < SublistSize; i++)
+            // Clear only alive components
+            for (uint32_t packed_index = 0; packed_index < sublist.aliveCount; packed_index++)
             {
-                if (!sublist.usedSlots[i]) continue;
+                const uint32_t slot = sublist.packedToSlot[packed_index];
+                T* component = sublist.packedGet(packed_index);
                 
-                T* component = sublist.get(i);
                 if constexpr (std::is_base_of_v<BehaviorComponent, T>)
                 {
                     component->exit();
                 }
                 component->~T();
                 
-                sublist.usedSlots[i] = false;
-                ++sublist.generations[i];
+                ++sublist.generations[slot];
+                sublist.usedSlots[slot] = false;
+                
+                sublist.slotToPacked[slot] = INVALID_INDEX;
+                sublist.packedToSlot[packed_index] = INVALID_INDEX;
             }
             
+            sublist.aliveCount = 0;
             sublist.freeSlots = SublistSize;
         }
         
@@ -178,7 +225,7 @@ public:
             {
                 if (sublists[i]->usedSlots[j] || sublists[i]->generations[j] != 0)
                 {
-                    result << "Sublist " << i << " | Slot " << j << " | Used: " << (sublists[i]->usedSlots[j] ? "true" : "false") << " | Generation: " << sublists[i]->generations[j] << "\n";
+                    result << "Sublist " << i << " | Slot " << j << " | Used: " << (sublists[i]->usedSlots[j] ? "true" : "false") << " | Generation: " << sublists[i]->generations[j] << " | PackedIndex: " << sublists[i]->slotToPacked[j] << "\n";
                 }
             }
         }
@@ -197,20 +244,21 @@ public:
 template <class T, size_t SublistSize>
 class BehaviorManager final : public ComponentManager<T, SublistSize>, public IBehaviorManager
 {
+    static_assert(std::is_base_of_v<Component, T>, "T must be derived from BehaviorComponent.");
+    
 public:
     // Note: Called automatically every frame by the system that manages the ECS globally
     void UpdateComponents(float deltaTime) override
     {
         auto& sublists = this->sublists;
-        for (size_t i = 0; i < sublists.size(); i++)
+        for (auto& sublist_ptr : sublists)
         {
-            ComponentSubList<T, SublistSize>& sublist = *sublists[i];
+            ComponentSubList<T, SublistSize>& sublist = *sublist_ptr;
             
-            for (size_t j = 0; j < SublistSize; j++)
+            // Update only alive components
+            for (uint32_t packed_index = 0; packed_index < sublist.aliveCount; packed_index++)
             {
-                if (!sublist.usedSlots[j]) continue;
-                
-                T* component = sublist.get(j);
+                T* component = sublist.packedGet(packed_index);
                 if (!component->getUpdateActivated()) continue;
                 
                 component->update(deltaTime);

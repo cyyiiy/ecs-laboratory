@@ -15,8 +15,8 @@ class Component
 public:
     Component() = default;
     virtual ~Component() = default;
+    Component(const Component& other) = default;
     
-    Component(const Component& other) = delete;
     Component& operator=(const Component&) = delete;
     
     void setPendingDelete(bool value);

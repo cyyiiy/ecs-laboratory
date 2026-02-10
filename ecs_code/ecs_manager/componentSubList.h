@@ -2,17 +2,33 @@
 #include <bitset>
 
 
+struct ComponentSlot
+{
+    uint32_t componentId;
+    uint32_t generation;
+};
+
 template <class T, size_t SublistSize>
 class ComponentSubList
 {
 public:
-    std::aligned_storage_t<sizeof(T), alignof(T)> components[SublistSize];
-    std::bitset<SublistSize> usedSlots{};
+    static constexpr uint32_t INVALID_INDEX = std::numeric_limits<uint32_t>::max();
+    
+    std::aligned_storage_t<sizeof(T), alignof(T)> packedComponents[SublistSize];
+    
+    uint32_t slotToPacked[SublistSize]{ INVALID_INDEX };
+    uint32_t packedToSlot[SublistSize]{ INVALID_INDEX };
     uint32_t generations[SublistSize]{};
+    
+    std::bitset<SublistSize> usedSlots{};
+    
+    size_t aliveCount{ 0 };
     size_t freeSlots{ SublistSize };
     
-    T* get(size_t index)
+    T* packedGet(size_t packedIndex)
     {
-        return std::launder(reinterpret_cast<T*>(&components[index]));
+        return std::launder(
+            reinterpret_cast<T*>(&packedComponents[packedIndex])
+        );
     }
 };

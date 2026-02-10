@@ -5,8 +5,8 @@ class BehaviorComponent : public Component
 {
 public:
     BehaviorComponent() = default;
+    BehaviorComponent(const BehaviorComponent& other) = default;
     
-    BehaviorComponent(const BehaviorComponent& other) = delete;
     BehaviorComponent& operator=(const BehaviorComponent&) = delete;
     
     void setUpdateActivated(bool value);

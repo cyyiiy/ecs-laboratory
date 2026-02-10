@@ -32,8 +32,7 @@ public:
     
     
     template<class T>
-    std::enable_if_t<std::is_base_of<Component, T>::value, ComponentHandle>
-        addComponentByClass()
+    ComponentHandle addComponentByClass()
     {
         ComponentTypeId type_id = GetComponentTypeId<T>();
         ComponentHandle handle = ECS::CreateComponent<T>(this);
@@ -48,8 +47,7 @@ public:
     }
     
     template<class T>
-    std::enable_if_t<std::is_base_of<Component, T>::value, T*>
-        getComponent(ComponentHandle handle)
+    T* getComponent(ComponentHandle handle)
     {
         ComponentTypeId type_id = GetComponentTypeId<T>();
         
@@ -66,8 +64,7 @@ public:
     }
     
     template<class T>
-    std::enable_if_t<std::is_base_of<Component, T>::value, bool>
-        hasComponentOfClass()
+    bool hasComponentOfClass()
     {
         ComponentTypeId type_id = GetComponentTypeId<T>();
         
@@ -75,8 +72,7 @@ public:
     }
     
     template<class T>
-    std::enable_if_t<std::is_base_of<Component, T>::value, T*>
-        getComponentOfClass()
+    T* getComponentOfClass()
     {
         ComponentTypeId type_id = GetComponentTypeId<T>();
         
@@ -90,8 +86,7 @@ public:
     }
     
     template<class T>
-    std::enable_if_t<std::is_base_of<Component, T>::value, std::vector<T*>>
-        getAllComponentsOfClass()
+    std::vector<T*> getAllComponentsOfClass()
     {
         ComponentTypeId type_id = GetComponentTypeId<T>();
         
@@ -113,8 +108,7 @@ public:
     }
     
     template<class T>
-    std::enable_if_t<std::is_base_of<Component, T>::value, void>
-        removeComponent(ComponentHandle handle)
+    void removeComponent(ComponentHandle handle)
     {
         ComponentTypeId type_id = GetComponentTypeId<T>();
         
