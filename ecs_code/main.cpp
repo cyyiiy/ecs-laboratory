@@ -4,6 +4,7 @@
 #include "ecs_example/componentA.h"
 #include "ecs_example/componentB.h"
 #include "ecs_example/componentDataA.h"
+#include "ecs_example/dataSystemA.h"
 
 
 void testComponents()
@@ -101,10 +102,58 @@ void testEntities()
     ECS::DebugECS();
 }
 
+void testDataSystem()
+{
+    std::cout << "===================================================\n";
+    std::cout << "=============== ECS Test Data System ==============\n";
+    std::cout << "===================================================\n";
+    
+    DataSystemA data_system;
+    
+    std::cout << "\n==> Create three data components:\n";
+    ComponentHandle component_data_1 = ECS::CreateComponent<ComponentDataA>(nullptr);
+    ComponentHandle component_data_2 = ECS::CreateComponent<ComponentDataA>(nullptr);
+    ComponentHandle component_data_3 = ECS::CreateComponent<ComponentDataA>(nullptr);
+    ECS::DebugECS();
+    
+    std::cout << "\n==> Set values to them:\n";
+    ECS::GetComponent<ComponentDataA>(component_data_1).integer_value = 111;
+    ECS::GetComponent<ComponentDataA>(component_data_1).string_value = "AAA";
+    ECS::GetComponent<ComponentDataA>(component_data_2).integer_value = 222;
+    ECS::GetComponent<ComponentDataA>(component_data_2).string_value = "BBB";
+    ECS::GetComponent<ComponentDataA>(component_data_3).integer_value = 333;
+    ECS::GetComponent<ComponentDataA>(component_data_3).string_value = "CCC";
+    data_system.updateSystem();
+    
+    std::cout << "\n==> Delete the second component:\n";
+    ECS::DeleteComponent<ComponentDataA>(component_data_2);
+    ECS::DeletePendings();
+    ECS::DebugECS();
+    data_system.updateSystem();
+    
+    std::cout << "\n==> Create two new components:\n";
+    ComponentHandle component_data_4 = ECS::CreateComponent<ComponentDataA>(nullptr);
+    ComponentHandle component_data_5 = ECS::CreateComponent<ComponentDataA>(nullptr);
+    ECS::DebugECS();
+    
+    std::cout << "\n==> Set values to the new components:\n";
+    ECS::GetComponent<ComponentDataA>(component_data_4).integer_value = 444;
+    ECS::GetComponent<ComponentDataA>(component_data_4).string_value = "DDD";
+    ECS::GetComponent<ComponentDataA>(component_data_5).integer_value = 555;
+    ECS::GetComponent<ComponentDataA>(component_data_5).string_value = "EEE";
+    data_system.updateSystem();
+    
+    std::cout << "\n==> Clear the components:\n";
+    ECS::Clear();
+    ECS::DebugECS();
+    data_system.updateSystem();
+}
+
 int main()
 {
     //testComponents();
-    testEntities();
+    //testEntities();
+    testDataSystem();
     
     return 0;
 }
