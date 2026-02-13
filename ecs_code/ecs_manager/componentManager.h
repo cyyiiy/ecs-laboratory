@@ -176,6 +176,20 @@ public:
         pendingComponents.clear();
     }
     
+    template<class Func>
+    void ForEach(Func&& func)
+    {
+        for (auto& sublist_ptr : sublists)
+        {
+            Sublist& sublist = *sublist_ptr;
+            
+            for (uint32_t packed_index = 0; packed_index < sublist.aliveCount; packed_index++)
+            {
+                func(*sublist.packedGet(packed_index));
+            }
+        }
+    }
+    
     // Note: Could be called by the system that manages the ECS globally when closing the game for example
     void ClearAllComponents() override
     {
