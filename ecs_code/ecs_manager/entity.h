@@ -2,7 +2,6 @@
 #include <unordered_map>
 #include <vector>
 #include <algorithm>
-#include <functional>
 
 #include "ecsTypes.h"
 #include "ecs.h"
@@ -11,13 +10,16 @@
 
 struct StoredComponent
 {
-    ComponentHandle handle;
-    std::function<void(ComponentHandle)> deleteFunction;
+    RawComponentHandle raw_handle;
+    void (*deleteFunction)(const RawComponentHandle&);
     
-    // Custom == operator to allow std::find to work by searching a ComponentHandle in a list of StoredComponent
-    bool operator==(const ComponentHandle& otherHandle) const
+    // Custom == operator to allow std::find to work by searching a RawComponentHandle in a list of StoredComponent
+    bool operator==(const RawComponentHandle& otherRaw) const
     {
-        return otherHandle == this->handle;
+        return 
+            otherRaw.sublistId == this->raw_handle.sublistId && 
+            otherRaw.slotId == this->raw_handle.slotId &&
+            otherRaw.generation == this->raw_handle.generation;
     }
 };
 
@@ -32,63 +34,67 @@ public:
     
     
     template<class T>
-    ComponentHandle addComponentByClass()
+    ComponentHandle<T> addComponentByClass()
     {
-        ComponentTypeId type_id = GetComponentTypeId<T>();
-        ComponentHandle handle = ECS::CreateComponent<T>(this);
+        const ComponentTypeId type_id = GetComponentTypeId<T>();
+        const ComponentHandle<T> handle = ECS::CreateComponent<T>(this);
         
         components[type_id].push_back(
             StoredComponent{
-                handle,
-                &ECS::DeleteComponent<T>
+                handle.raw,
+                &ECS::DeleteComponentRawHandle<T>
             });
         
         return handle;
     }
     
     template<class T>
-    T* getComponent(ComponentHandle handle)
+    bool hasComponent(ComponentHandle<T> handle) const noexcept
     {
-        ComponentTypeId type_id = GetComponentTypeId<T>();
+        const ComponentTypeId type_id = GetComponentTypeId<T>();
         
         if (components.find(type_id) == components.end())
-            throw std::runtime_error("Component doesn't belongs to this entity.");
+            return false;
 
         const auto iter = 
-            std::find(components[type_id].begin(), components[type_id].end(), handle);
+            std::find(components.at(type_id).begin(), components.at(type_id).end(), handle.raw);
         
-        if (iter == components[type_id].end())
-            throw std::runtime_error("Component doesn't belongs to this entity.");
-        
-        return &ECS::GetComponent<T>(iter->handle);
+        return iter != components.at(type_id).end();
     }
     
     template<class T>
-    bool hasComponentOfClass()
+    T* getComponent(ComponentHandle<T> handle)
     {
-        ComponentTypeId type_id = GetComponentTypeId<T>();
+        if (!hasComponent(handle))
+            throw std::runtime_error("Component doesn't belongs to this entity.");
         
-        return components.find(type_id) != components.end() && components[type_id].size() > 0;
+        return &ECS::GetComponent(handle);
+    }
+    
+    template<class T>
+    bool hasComponentOfClass() const noexcept
+    {
+        const ComponentTypeId type_id = GetComponentTypeId<T>();
+        
+        return components.find(type_id) != components.end() && components.at(type_id).size() > 0;
     }
     
     template<class T>
     T* getComponentOfClass()
     {
-        ComponentTypeId type_id = GetComponentTypeId<T>();
-        
-        if (components.find(type_id) == components.end())
+        if (!hasComponentOfClass<T>())
             throw std::runtime_error("Entity doesn't have a component of this class.");
         
-        if (components[type_id].size() == 0)
-            throw std::runtime_error("Entity doesn't have a component of this class.");
+        const ComponentTypeId type_id = GetComponentTypeId<T>();
+        const ComponentHandle<T> handle(components[type_id][0].raw_handle);
         
-        return &ECS::GetComponent<T>(components[type_id][0].handle);
+        return &ECS::GetComponent(handle);
     }
     
     template<class T>
     std::vector<T*> getAllComponentsOfClass()
     {
-        ComponentTypeId type_id = GetComponentTypeId<T>();
+        const ComponentTypeId type_id = GetComponentTypeId<T>();
         
         if (components.find(type_id) == components.end())
             throw std::runtime_error("Entity doesn't have a component of this class.");
@@ -99,29 +105,27 @@ public:
         std::vector<T*> return_list;
         return_list.reserve(components[type_id].size());
         
-        for (StoredComponent component : components[type_id])
+        for (StoredComponent stored_handle : components[type_id])
         {
-            return_list.push_back(&ECS::GetComponent<T>(component.handle));
+            const ComponentHandle<T> handle(stored_handle.raw_handle);
+            return_list.push_back(&ECS::GetComponent(handle));
         }
         
         return return_list;
     }
     
     template<class T>
-    void removeComponent(ComponentHandle handle)
+    void removeComponent(ComponentHandle<T> handle)
     {
-        ComponentTypeId type_id = GetComponentTypeId<T>();
+        const ComponentTypeId type_id = GetComponentTypeId<T>();
         
-        if (components.find(type_id) == components.end())
+        if (!hasComponent(handle))
             throw std::runtime_error("Component doesn't belongs to this entity.");
 
         const auto iter = 
-            std::find(components[type_id].begin(), components[type_id].end(), handle);
+            std::find(components[type_id].begin(), components[type_id].end(), handle.raw);
         
-        if (iter == components[type_id].end())
-            throw std::runtime_error("Component doesn't belongs to this entity.");
-        
-        ECS::DeleteComponent<T>(handle);
+        ECS::DeleteComponent(handle);
         components[type_id].erase(iter);
     }
     

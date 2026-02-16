@@ -2,7 +2,7 @@
 #include <iostream>
 
 std::vector<IComponentManager*> ECS::managers;
-std::vector<IBehaviorManager*> ECS::behavior_managers;
+std::vector<IBehaviorManager*> ECS::behaviorManagers;
 
 
 void ECS::DebugECS()

@@ -2,12 +2,6 @@
 #include <bitset>
 
 
-struct ComponentSlot
-{
-    uint32_t componentId;
-    uint32_t generation;
-};
-
 template <class T, size_t SublistSize>
 class ComponentSubList
 {

@@ -11,18 +11,19 @@ ComponentTypeId GetComponentTypeId()
     return reinterpret_cast<ComponentTypeId>(&id);
 }
 
-
-struct ComponentHandle
+struct RawComponentHandle
 {
     uint32_t sublistId;
     uint32_t slotId;
     uint32_t generation;
+};
+
+template <class T>
+struct ComponentHandle
+{
+    static_assert(std::is_base_of_v<class Component, T>, "T must be derived from Component.");
     
-    bool operator==(const ComponentHandle& other) const
-    {
-        return 
-            sublistId == other.sublistId &&
-            slotId == other.slotId &&
-            generation == other.generation;
-    }
+    RawComponentHandle raw;
+    
+    ComponentHandle(RawComponentHandle r) : raw(r) {}
 };

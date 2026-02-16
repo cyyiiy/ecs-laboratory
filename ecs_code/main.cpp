@@ -14,42 +14,46 @@ void testComponents()
     std::cout << "===================================================\n";
     
     std::cout << "\n==> Create two components of class ComponentB:\n";
-    ComponentHandle componentB_1 = ECS::CreateComponent<ComponentB>(nullptr);
-    ComponentHandle componentB_2 = ECS::CreateComponent<ComponentB>(nullptr);
+    ComponentHandle<ComponentB> componentB_1 = ECS::CreateComponent<ComponentB>();
+    ComponentHandle<ComponentB> componentB_2 = ECS::CreateComponent<ComponentB>();
     ECS::DebugECS();
     
     std::cout << "\n==> Set and read values to created components:\n";
-    ECS::GetComponent<ComponentB>(componentB_1).setValue(1);
-    ECS::GetComponent<ComponentB>(componentB_2).setValue(2);
-    ECS::GetComponent<ComponentB>(componentB_1).readValue();
-    ECS::GetComponent<ComponentB>(componentB_2).readValue();
+    ECS::GetComponent(componentB_1).setValue(1);
+    ECS::GetComponent(componentB_2).setValue(2);
+    ECS::GetComponent(componentB_1).readValue();
+    ECS::GetComponent(componentB_2).readValue();
     
     std::cout << "\n==> Execute ECS Update:\n";
     ECS::Update(0.1f);
     
     std::cout << "\n==> Delete one of the created components:\n";
-    ECS::DeleteComponent<ComponentB>(componentB_1); // Set pending delete, not immediately
+    ECS::DeleteComponent(componentB_1); // Set pending delete, not immediately
     ECS::DebugECS();
     
     std::cout << "\n==> Execute ECS Delete Pendings:\n";
     ECS::DeletePendings();
     ECS::DebugECS();
     
+    std::cout << "\n==> Test validity of component handles:\n";
+    std::cout << "ComponentHandle 'componentB_1': " << ECS::IsComponentHandleValid(componentB_1) << "\n";
+    std::cout << "ComponentHandle 'componentB_2': " << ECS::IsComponentHandleValid(componentB_2) << "\n";
+    
     std::cout << "\n==> Execute ECS Update:\n";
     ECS::Update(0.1f);
     
     std::cout << "\n==> Create two more components of class ComponentB:\n";
-    ComponentHandle componentB_3 = ECS::CreateComponent<ComponentB>(nullptr);
-    ComponentHandle componentB_4 = ECS::CreateComponent<ComponentB>(nullptr);
+    ComponentHandle<ComponentB> componentB_3 = ECS::CreateComponent<ComponentB>();
+    ComponentHandle<ComponentB> componentB_4 = ECS::CreateComponent<ComponentB>();
     ECS::DebugECS();
     
     std::cout << "\n==> Read values of created components (one is a reused from the one deleted earlier and one is brand new):\n";
-    ECS::GetComponent<ComponentB>(componentB_3).readValue();
-    ECS::GetComponent<ComponentB>(componentB_4).readValue();
+    ECS::GetComponent(componentB_3).readValue();
+    ECS::GetComponent(componentB_4).readValue();
     
     std::cout << "\n==> Create ten components of class ComponentA:\n";
     for (int i = 0; i < 10; i++)
-        ECS::CreateComponent<ComponentA>(nullptr);
+        ECS::CreateComponent<ComponentA>();
     ECS::DebugECS();
     
     std::cout << "\n==> Execute ECS Update:\n";
@@ -68,12 +72,12 @@ void testEntities()
     
     std::cout << "\n==> Create an entity and a component on it:\n";
     Entity entity1;
-    ComponentHandle handle = entity1.addComponentByClass<ComponentA>();
+    ComponentHandle<ComponentA> handle = entity1.addComponentByClass<ComponentA>();
     entity1.debugEntity();
     ECS::DebugECS();
     
     std::cout << "\n==> Manipulate the component of the entity:\n";
-    ComponentA* component = entity1.getComponent<ComponentA>(handle);
+    ComponentA* component = entity1.getComponent(handle);
     component = entity1.getComponentOfClass<ComponentA>(); // Both gives the same result
     component->setValue(1);
     component->readValue();
@@ -94,7 +98,7 @@ void testEntities()
     ECS::DebugECS();
     
     std::cout << "\n==> Remove the component from the first entity:\n";
-    entity1.removeComponent<ComponentA>(handle);
+    entity1.removeComponent(handle);
     entity1.debugEntity();
     
     std::cout << "\n==> Execute ECS Delete Pendings:\n";
@@ -111,18 +115,18 @@ void testDataSystem()
     DataSystemA data_system;
     
     std::cout << "\n==> Create three data components:\n";
-    ComponentHandle component_data_1 = ECS::CreateComponent<ComponentDataA>(nullptr);
-    ComponentHandle component_data_2 = ECS::CreateComponent<ComponentDataA>(nullptr);
-    ComponentHandle component_data_3 = ECS::CreateComponent<ComponentDataA>(nullptr);
+    ComponentHandle<ComponentDataA> component_data_1 = ECS::CreateComponent<ComponentDataA>();
+    ComponentHandle<ComponentDataA> component_data_2 = ECS::CreateComponent<ComponentDataA>();
+    ComponentHandle<ComponentDataA> component_data_3 = ECS::CreateComponent<ComponentDataA>();
     ECS::DebugECS();
     
     std::cout << "\n==> Set values to them:\n";
-    ECS::GetComponent<ComponentDataA>(component_data_1).integer_value = 111;
-    ECS::GetComponent<ComponentDataA>(component_data_1).string_value = "AAA";
-    ECS::GetComponent<ComponentDataA>(component_data_2).integer_value = 222;
-    ECS::GetComponent<ComponentDataA>(component_data_2).string_value = "BBB";
-    ECS::GetComponent<ComponentDataA>(component_data_3).integer_value = 333;
-    ECS::GetComponent<ComponentDataA>(component_data_3).string_value = "CCC";
+    ECS::GetComponent(component_data_1).integer_value = 111;
+    ECS::GetComponent(component_data_1).string_value = "AAA";
+    ECS::GetComponent(component_data_2).integer_value = 222;
+    ECS::GetComponent(component_data_2).string_value = "BBB";
+    ECS::GetComponent(component_data_3).integer_value = 333;
+    ECS::GetComponent(component_data_3).string_value = "CCC";
     data_system.updateSystem();
     
     std::cout << "\n==> Delete the second component:\n";
@@ -132,15 +136,15 @@ void testDataSystem()
     data_system.updateSystem();
     
     std::cout << "\n==> Create two new components:\n";
-    ComponentHandle component_data_4 = ECS::CreateComponent<ComponentDataA>(nullptr);
-    ComponentHandle component_data_5 = ECS::CreateComponent<ComponentDataA>(nullptr);
+    ComponentHandle<ComponentDataA> component_data_4 = ECS::CreateComponent<ComponentDataA>();
+    ComponentHandle<ComponentDataA> component_data_5 = ECS::CreateComponent<ComponentDataA>();
     ECS::DebugECS();
     
     std::cout << "\n==> Set values to the new components:\n";
-    ECS::GetComponent<ComponentDataA>(component_data_4).integer_value = 444;
-    ECS::GetComponent<ComponentDataA>(component_data_4).string_value = "DDD";
-    ECS::GetComponent<ComponentDataA>(component_data_5).integer_value = 555;
-    ECS::GetComponent<ComponentDataA>(component_data_5).string_value = "EEE";
+    ECS::GetComponent(component_data_4).integer_value = 444;
+    ECS::GetComponent(component_data_4).string_value = "DDD";
+    ECS::GetComponent(component_data_5).integer_value = 555;
+    ECS::GetComponent(component_data_5).string_value = "EEE";
     data_system.updateSystem();
     
     std::cout << "\n==> Clear the components:\n";
@@ -151,9 +155,9 @@ void testDataSystem()
 
 int main()
 {
-    //testComponents();
+    testComponents();
     //testEntities();
-    testDataSystem();
+    //testDataSystem();
     
     return 0;
 }

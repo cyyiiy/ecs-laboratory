@@ -14,7 +14,7 @@ void Entity::clearAllComponents()
         // Loop through all components of a class
         for (StoredComponent& stored_component : pair.second)
         {
-            stored_component.deleteFunction(stored_component.handle);
+            stored_component.deleteFunction(stored_component.raw_handle);
         }
     }
     
@@ -29,7 +29,7 @@ void Entity::debugEntity()
         std::cout << " --- ComponentTypeId: " << pair.first << "\n";
         for (StoredComponent& stored_component : pair.second)
         {
-            const ComponentHandle& handle = stored_component.handle;
+            const RawComponentHandle& handle = stored_component.raw_handle;
             std::cout << "ComponentHandle: Sublist " << handle.sublistId << " | Slot " << handle.slotId << " | Generation " << handle.generation << "\n";
         }
     }

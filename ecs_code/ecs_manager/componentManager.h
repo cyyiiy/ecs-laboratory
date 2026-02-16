@@ -30,10 +30,10 @@ protected:
     
     using Sublist = ComponentSubList<T, SublistSize>;
     std::vector<std::unique_ptr<Sublist>> sublists;
-    std::vector<ComponentHandle> pendingComponents;
+    std::vector<RawComponentHandle> pendingComponents;
     
 public:
-    ComponentHandle CreateComponent(class Entity* ownerEntity)
+    ComponentHandle<T> CreateComponent(class Entity* ownerEntity)
     {
         // Step 1: Find a sublist with a free component slot
         size_t sublistId = sublists.size();
@@ -75,7 +75,7 @@ public:
         uint32_t packedIndex = static_cast<uint32_t>(sublist_creating_in.aliveCount++);
         
         sublist_creating_in.slotToPacked[slotId] = packedIndex;
-        sublist_creating_in.packedToSlot[packedIndex] = slotId;
+        sublist_creating_in.packedToSlot[packedIndex] = static_cast<uint32_t>(slotId);
         
         // Step 4: Construct the component
         T* component = sublist_creating_in.packedGet(packedIndex);
@@ -90,14 +90,16 @@ public:
         
         // Step 5: Return the component handle
         const uint32_t generation = sublist_creating_in.generations[slotId];
-        return ComponentHandle{ 
-            static_cast<uint32_t>(sublistId), 
-            static_cast<uint32_t>(slotId),
-            generation
+        return ComponentHandle<T>{
+            RawComponentHandle{
+                static_cast<uint32_t>(sublistId), 
+                static_cast<uint32_t>(slotId),
+                generation
+            }
         };
     }
     
-    void DeleteComponent(const ComponentHandle& handle)
+    void DeleteComponent(const ComponentHandle<T>& handle)
     {
         T& component = GetComponent(handle);
         
@@ -106,19 +108,36 @@ public:
             
         component.setPendingDelete(true);
         
-        pendingComponents.push_back(handle);
+        pendingComponents.push_back(handle.raw);
     }
     
-    T& GetComponent(const ComponentHandle& handle)
+    T& GetComponent(const ComponentHandle<T>& handle)
     {        
-        Sublist& sublist = *sublists[handle.sublistId];
+        Sublist& sublist = *sublists[handle.raw.sublistId];
         
-        if (sublist.generations[handle.slotId] != handle.generation)
+        if (sublist.generations[handle.raw.slotId] != handle.raw.generation)
             throw std::runtime_error("Invalid component handle.");
         
-        const uint32_t packed_index = sublist.slotToPacked[handle.slotId];
+        const uint32_t packed_index = sublist.slotToPacked[handle.raw.slotId];
         
         return *sublist.packedGet(packed_index);
+    }
+    
+    bool IsComponentHandleValid(const ComponentHandle<T>& handle) noexcept
+    {
+        if (handle.raw.sublistId >= sublists.size() || handle.raw.slotId >= SublistSize)
+        {
+            return false;
+        }
+        
+        Sublist& sublist = *sublists[handle.raw.sublistId];
+        
+        if (!sublist.usedSlots[handle.raw.slotId])
+        {
+            return false;
+        }
+        
+        return sublist.generations[handle.raw.slotId] == handle.raw.generation;
     }
     
     // Note: Called automatically every frame by the system that manages the ECS globally
@@ -126,7 +145,7 @@ public:
     {
         if (pendingComponents.empty()) return;
         
-        for (auto& handle : pendingComponents)
+        for (RawComponentHandle& handle : pendingComponents)
         {
             // Step 1: Prepare the data
             Sublist& sublist = *sublists[handle.sublistId];
