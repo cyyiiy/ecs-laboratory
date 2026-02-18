@@ -4,6 +4,11 @@
 #include "componentManager.h"
 
 
+/**
+ * Static methods that can be used to interact with the global ECS system.
+ * 
+ * For simple ECS usage such as adding or removing a component on an entity, prefer using the entity functions directly.
+ */
 class ECS
 {
 private:
@@ -59,6 +64,8 @@ public:
 
     /** Creates a new component of a given class in the ECS.
      * 
+     * Note: Prefer creating a component from an entity for a basic usage of the ECS.
+     * 
      * @tparam T The component class.
      * @param ownerEntity The entity that owns this component. Must be nullptr if this function is not called from `Entity::addComponentByClass`.
      * @return A ComponentHandle that allows to retrieve and access the component.
@@ -73,7 +80,7 @@ public:
      * 
      * Note: The deletion only occurs when `ECS::DeletePendings` is called (usually at the end of the frame).
      * 
-     * @tparam T The component class. | This function can be called without explicitly use the template argument as it is deduced from the ComponentHandle.
+     * @tparam T The component class. | This function can be called without explicitly using the template argument as it is deduced from the ComponentHandle.
      * @param handle The ComponentHandle that allows to access the component to delete.
      */
     template <class T>
@@ -98,7 +105,7 @@ public:
 
     /** Get a reference to an existing component in the ECS.
      * 
-     * @tparam T The component class. | This function can be called without explicitly use the template argument as it is deduced from the ComponentHandle.
+     * @tparam T The component class. | This function can be called without explicitly using the template argument as it is deduced from the ComponentHandle.
      * @param handle The ComponentHandle that allows to access the component to get.
      * @return A reference to the component.
      */
@@ -110,7 +117,7 @@ public:
 
     /** Know if a component handle access to an existing component.
      * 
-     * @tparam T The component class. | This function can be called without explicitly use the template argument as it is deduced from the ComponentHandle.
+     * @tparam T The component class. | This function can be called without explicitly using the template argument as it is deduced from the ComponentHandle.
      * @param handle The ComponentHandle to check.
      * @return True if the component handle is valid, False otherwise.
      */
@@ -121,6 +128,8 @@ public:
     }
 
     /** Update all existing behavior components in the ECS.
+     * 
+     * Note: Usually called once a frame by the engine.
      * 
      * @param deltaTime The duration of the frame.
      */
@@ -133,6 +142,8 @@ public:
     }
 
     /** Delete all pending components in the ECS.
+     * 
+     * Note: Usually called once a frame by the engine.
      */
     static void DeletePendings()
     {
@@ -143,6 +154,8 @@ public:
     }
 
     /** Instantly delete every existing components in the ECS.
+     * 
+     * Note: Usually called by the engine when closing a game.
      */
     static void Clear()
     {

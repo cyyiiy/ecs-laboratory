@@ -1,11 +1,6 @@
 ﻿#include "entity.h"
 #include <iostream>
 
-Entity::~Entity()
-{
-    clearAllComponents();
-}
-
 void Entity::clearAllComponents()
 {
     // 'pair' is: std::pair<ComponentTypeId, std::vector<StoredComponent>>

@@ -8,6 +8,9 @@
 #include "ecsTypes.h"
 
 
+/**
+ * Interface for `ComponentManager` so a list of all managers is possible (for global ECS methods such as `DeletePendings`).
+ */
 class IComponentManager
 {
 public:
@@ -19,6 +22,15 @@ public:
     virtual std::string DebugComponentManager() const = 0;
 };
 
+/**
+ * ECS manager that is responsible for all components of a class.
+ * The components are stored in `ComponentSubList` objects, and the system works like a memory pool.
+ * 
+ * Note: Component managers are created at compilation by the ECS system. It is advised to never create one manually.
+ * 
+ * @tparam T The component class.
+ * @tparam SublistSize The number of components that can be contained in a single sublist for this class.
+ */
 template <class T, size_t SublistSize>
 class ComponentManager : public IComponentManager
 {
@@ -33,6 +45,13 @@ protected:
     std::vector<RawComponentHandle> pendingComponents;
     
 public:
+    /** Creates a new component in the manager.
+     * 
+     * Note: Prefer creating a component from an entity for a basic usage of the ECS.
+     * 
+     * @param ownerEntity The entity that owns this component. Must be nullptr if this function is not called from `Entity::addComponentByClass`.
+     * @return A ComponentHandle that allows to retrieve and access the component.
+     */
     ComponentHandle<T> CreateComponent(class Entity* ownerEntity)
     {
         // Step 1: Find a sublist with a free component slot
@@ -98,10 +117,16 @@ public:
             }
         };
     }
-    
+
+    /** Deletes an existing component from the manager.
+     * 
+     * Note: The deletion only occurs when `ComponentManager::DeletePendingComponents` is called.
+     * 
+     * @param handle The ComponentHandle that allows to access the component to delete.
+     */
     void DeleteComponent(const ComponentHandle<T>& handle)
     {
-        T& component = GetComponent(handle);
+        T& component = GetComponent(handle); // Throw error if the component doesn't exist
         
         if (component.getPendingDelete())
             throw std::runtime_error("Component is already pending deletion.");
@@ -110,7 +135,12 @@ public:
         
         pendingComponents.push_back(handle.raw);
     }
-    
+
+    /** Get a reference to an existing component in the manager.
+     * 
+     * @param handle The ComponentHandle that allows to access the component to get.
+     * @return A reference to the component.
+     */
     T& GetComponent(const ComponentHandle<T>& handle)
     {        
         Sublist& sublist = *sublists[handle.raw.sublistId];
@@ -118,11 +148,17 @@ public:
         if (sublist.generations[handle.raw.slotId] != handle.raw.generation)
             throw std::runtime_error("Invalid component handle.");
         
+        // `slotToPacked` allows to retrieve the packed index of the component in the sublist from the slot index in the handle
         const uint32_t packed_index = sublist.slotToPacked[handle.raw.slotId];
         
         return *sublist.packedGet(packed_index);
     }
-    
+
+    /** Know if a component handle access to an existing component in the manager.
+     * 
+     * @param handle The ComponentHandle to check.
+     * @return True if the component handle is valid, False otherwise.
+     */
     bool IsComponentHandleValid(const ComponentHandle<T>& handle) noexcept
     {
         if (handle.raw.sublistId >= sublists.size() || handle.raw.slotId >= SublistSize)
@@ -139,8 +175,11 @@ public:
         
         return sublist.generations[handle.raw.slotId] == handle.raw.generation;
     }
-    
-    // Note: Called automatically every frame by the system that manages the ECS globally
+
+    /** Destroy all components in the manager that are pending deletion.
+     * 
+     * Note: Usually called once a frame by `ECS::DeletePendings`.
+     */
     void DeletePendingComponents() override
     {
         if (pendingComponents.empty()) return;
@@ -194,8 +233,16 @@ public:
         
         pendingComponents.clear();
     }
-    
-    template<class Func>
+
+    /** Iterates on all active components of the manager.
+     * 
+     * Usage:
+     * 
+     * manager.ForEach([](const Component& component) { component.doSomething(); });
+     * 
+     * @param func The lambda to execute for each component.
+     */
+    template<typename Func>
     void ForEach(Func&& func)
     {
         for (auto& sublist_ptr : sublists)
@@ -208,8 +255,11 @@ public:
             }
         }
     }
-    
-    // Note: Could be called by the system that manages the ECS globally when closing the game for example
+
+    /** Instantly delete every existing components of the manager.
+     * 
+     * Note: Usually called by `ECS::Clear`.
+     */
     void ClearAllComponents() override
     {
         for (auto& sublist_ptr : sublists)
@@ -268,16 +318,27 @@ public:
 };
 
 
+/**
+ * Interface for `BehaviorManager` so a list of all managers of behavior components is possible (for global `Update`).
+ */
 class IBehaviorManager
 {
 public:
     virtual void UpdateComponents(float deltaTime) = 0;
 };
 
+/**
+ * Override of `ComponentManager` for component class that inherit from `BehaviorComponent`.
+ * 
+ * Note: Behavior managers are created at compilation by the ECS system. It is advised to never create one manually.
+ * 
+ * @tparam T The component class.
+ * @tparam SublistSize The number of components that can be contained in a single sublist for this class.
+ */
 template <class T, size_t SublistSize>
 class BehaviorManager final : public ComponentManager<T, SublistSize>, public IBehaviorManager
 {
-    static_assert(std::is_base_of_v<Component, T>, "T must be derived from BehaviorComponent.");
+    static_assert(std::is_base_of_v<BehaviorComponent, T>, "T must be derived from BehaviorComponent.");
     
 public:
     // Note: Called automatically every frame by the system that manages the ECS globally

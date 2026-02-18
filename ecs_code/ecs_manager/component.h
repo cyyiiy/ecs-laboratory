@@ -3,6 +3,12 @@
 class Entity; // Forward declaration
 
 
+/**
+ * Templated struct that contains the number of components contained per sublist for a class.
+ * If this struct is defined for a specific class with a new value, it will override the default value of 64 for this class.
+ * 
+ * @tparam T The component class.
+ */
 template <class T>
 struct ComponentSublistSize
 {
@@ -10,6 +16,11 @@ struct ComponentSublistSize
 };
 
 
+/**
+ * Base class for all components.
+ * 
+ * Store a pointer towards its owner `Entity` and knows if it is pending deletion.
+ */
 class Component
 {
 public:

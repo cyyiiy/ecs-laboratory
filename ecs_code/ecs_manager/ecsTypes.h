@@ -2,6 +2,11 @@
 
 using ComponentTypeId = size_t;
 
+/** Get a unique and stable identifier for a component class.
+ * 
+ * @tparam T The component class.
+ * @return The unique identifier.
+ */
 template <class T>
 ComponentTypeId GetComponentTypeId()
 {
@@ -11,6 +16,11 @@ ComponentTypeId GetComponentTypeId()
     return reinterpret_cast<ComponentTypeId>(&id);
 }
 
+/**
+ * Non-templated handle that allows to retrieve a component from a manager.
+ * 
+ * Note: This exists for internal reasons, prefer `ComponentHandle` for basic ECS usage.
+ */
 struct RawComponentHandle
 {
     uint32_t sublistId;
@@ -18,6 +28,11 @@ struct RawComponentHandle
     uint32_t generation;
 };
 
+/**
+ * Templated handle that allows to retrieve a component from a manager.
+ * 
+ * @tparam T The component class.
+ */
 template <class T>
 struct ComponentHandle
 {

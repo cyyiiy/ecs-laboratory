@@ -77,23 +77,22 @@ void testEntities()
     ECS::DebugECS();
     
     std::cout << "\n==> Manipulate the component of the entity:\n";
-    ComponentA* component = entity1.getComponent(handle);
-    component = entity1.getComponentOfClass<ComponentA>(); // Both gives the same result
-    component->setValue(1);
-    component->readValue();
+    ComponentHandle<ComponentA> handle_bis = entity1.getComponentOfClass<ComponentA>(); // handle_bis == handle
+    ComponentA& component = entity1.getComponent(handle_bis);
+    component.setValue(1);
+    component.readValue();
     
-    std::cout << "\n==> Create another entity with components inside a scope:\n";
-    {
-        Entity entity2;
-        entity2.addComponentByClass<ComponentA>();
-        entity2.addComponentByClass<ComponentB>();
-        entity2.addComponentByClass<ComponentB>();
-        entity2.addComponentByClass<ComponentDataA>();
-        entity2.debugEntity();
-        ECS::DebugECS();
-    }
+    std::cout << "\n==> Create another entity with components:\n";
+    Entity entity2;
+    entity2.addComponentByClass<ComponentA>();
+    entity2.addComponentByClass<ComponentB>();
+    entity2.addComponentByClass<ComponentB>();
+    entity2.addComponentByClass<ComponentDataA>();
+    entity2.debugEntity();
+    ECS::DebugECS();
     
-    std::cout << "\n==> Exit the scope and execute ECS Delete Pendings:\n";
+    std::cout << "\n==> Clear components on this entity and execute ECS Delete Pendings:\n";
+    entity2.clearAllComponents();
     ECS::DeletePendings();
     ECS::DebugECS();
     

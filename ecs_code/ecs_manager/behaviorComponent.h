@@ -1,6 +1,11 @@
 ﻿#pragma once
 #include "component.h"
 
+/**
+ * Specialized component class that provides `init`, `update` and `exit` functions automatically called by the ECS.
+ * 
+ * Also provides the ability to enable/disable the update for each component.
+ */
 class BehaviorComponent : public Component
 {
 public:
