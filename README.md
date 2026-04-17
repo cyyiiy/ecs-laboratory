@@ -23,7 +23,7 @@ It will then construct the component in aligned storage of the sublist, and will
 
 When the delete function is called, it will simply marks the component as pending, and the real deletion will occurs
 once the `DeletePendingComponents` function is called (automatically done at the end of the frame). \
-When a component is deleted, the manager will get it's slot in the sublist, then call the pending component destructor.
+When a component is deleted, the manager will get its slot in the sublist, then call the pending component destructor.
 After that, it will get the last component of the sublist and move it to the slot of the deleted component, so alive
 components stay packed in memory.
 
@@ -34,7 +34,7 @@ component classes.
 ## Static ECS functions and where are the Managers
 
 There are many static functions that can be used to interact with the ECS system globally. They can be use to create,
-delete and get a component, test the validity of an handle (see below), and that's how the engine will call the global
+delete and get a component, test the validity of a handle (see below), and that's how the engine will call the global
 update (see below) and the global pending components deletion every frame.
 
 There is also a key function `ECS::Manager<T>` that serves two purposes:
