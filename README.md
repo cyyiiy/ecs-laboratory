@@ -71,8 +71,8 @@ For logic components (useful when creating a game), there is a `BehaviorComponen
 automatically be called by the ECS system whenever a component is created, deleted and updated every frame.
 Behavior components can also disable their update individually.
 
-**Note:** The `exit` function is called when `DeleteComponent` is called (so when the component is pending deletion),
-not when `DeletePendingComponents` is called.
+**Note:** The `exit` function is called when `DeletePendingComponent` is called (so when the component is really 
+deleted, usually at the end of the frame), not when `DeleteComponent` is called.
 
 
 ## The Entity class and the basic way to use the ECS
