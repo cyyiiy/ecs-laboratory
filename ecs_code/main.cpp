@@ -27,6 +27,10 @@ void testComponents()
     std::cout << "\n==> Execute ECS Update:\n";
     ECS::Update(0.1f);
     
+    std::cout << "\n==> Test equality between component handle and self handle of a component:\n";
+    ComponentB& componentB_1_ref = ECS::GetComponent(componentB_1);
+    std::cout << "Equality of 'componentB_1' and the self handle of the component: " << (componentB_1 == componentB_1_ref.getSelfHandle<ComponentB>());
+    
     std::cout << "\n==> Delete one of the created components:\n";
     ECS::DeleteComponent(componentB_1); // Set pending delete, not immediately
     ECS::DebugECS();
@@ -51,7 +55,12 @@ void testComponents()
     ECS::GetComponent(componentB_3).readValue();
     ECS::GetComponent(componentB_4).readValue();
     
-    std::cout << "\n==> Create ten components of class ComponentA:\n";
+    std::cout << "\n==> Create a component of class ComponentA and test the validity of its owned handle:\n";
+    ComponentHandle<ComponentA> componentA = ECS::CreateComponent<ComponentA>();
+    ComponentA& componentA_ref = ECS::GetComponent(componentA);
+    std::cout << "ComponentHandle 'testHande' of 'componentA': " << ECS::IsComponentHandleValid(componentA_ref.testHandle) << "\n";
+    
+    std::cout << "\n==> Create ten other components of class ComponentA:\n";
     for (int i = 0; i < 10; i++)
         ECS::CreateComponent<ComponentA>();
     ECS::DebugECS();
@@ -113,6 +122,9 @@ void testDataSystem()
     
     DataSystemA data_system;
     
+    std::cout << "\n==> Test data system with 0 created components:\n";
+    data_system.updateSystem();
+    
     std::cout << "\n==> Create three data components:\n";
     ComponentHandle<ComponentDataA> component_data_1 = ECS::CreateComponent<ComponentDataA>();
     ComponentHandle<ComponentDataA> component_data_2 = ECS::CreateComponent<ComponentDataA>();
@@ -154,9 +166,9 @@ void testDataSystem()
 
 int main()
 {
-    testComponents();
+    //testComponents();
     //testEntities();
-    //testDataSystem();
+    testDataSystem();
     
     return 0;
 }

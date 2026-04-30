@@ -18,5 +18,55 @@
     <ClCompile Include="ecs_code\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ecs_code\ecs_example\componentA.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ecs_code\ecs_example\componentB.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ecs_code\ecs_manager\behaviorComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ecs_code\ecs_manager\component.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ecs_code\ecs_manager\ecs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ecs_code\ecs_manager\entity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ecs_code\ecs_example\componentA.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs_code\ecs_example\componentB.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs_code\ecs_manager\behaviorComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs_code\ecs_manager\component.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs_code\ecs_manager\componentManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs_code\ecs_manager\componentSubList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs_code\ecs_manager\ecs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs_code\ecs_manager\ecsTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs_code\ecs_manager\ecs_merged.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs_code\ecs_manager\entity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

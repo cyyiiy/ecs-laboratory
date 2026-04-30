@@ -20,3 +20,8 @@ Entity* Component::getOwner() const
 {
     return owner;
 }
+
+void Component::setRawHandle(RawComponentHandle handle)
+{
+    rawHandle = handle;
+}

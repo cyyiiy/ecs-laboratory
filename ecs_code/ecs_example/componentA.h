@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "../ecs_manager/behaviorComponent.h"
+#include "componentDataA.h"
 
 
 class ComponentA : public BehaviorComponent
@@ -11,6 +12,8 @@ public:
     
     void setValue(const int val);
     void readValue();
+    
+    ComponentHandle<ComponentDataA> testHandle;
     
 private:
     int value{ 0 };
