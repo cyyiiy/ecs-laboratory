@@ -17,7 +17,7 @@ public:
     virtual ~IComponentManager() = default;
     
     virtual void DeletePendingComponents() = 0;
-    virtual void ClearAllComponents() = 0;
+    virtual void ClearAllComponents(bool closeEngine) = 0;
     
     virtual std::string DebugComponentManager() const = 0;
 };
@@ -261,7 +261,7 @@ public:
      * 
      * Note: Usually called by `ECS::Clear`.
      */
-    void ClearAllComponents() override
+    void ClearAllComponents(bool closeEngine) override
     {
         for (auto& sublist_ptr : sublists)
         {
@@ -275,7 +275,10 @@ public:
                 
                 if constexpr (std::is_base_of_v<BehaviorComponent, T>)
                 {
-                    component->exit();
+                    if (!closeEngine)
+                    {
+                        component->exit();
+                    }
                 }
                 component->~T();
                 

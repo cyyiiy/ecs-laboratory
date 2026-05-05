@@ -69,7 +69,7 @@ void testComponents()
     ECS::Update(0.1f);
     
     std::cout <<"\n==> Execute ECS Clear:\n";
-    ECS::Clear();
+    ECS::Clear(true);
     ECS::DebugECS();
 }
 
@@ -159,7 +159,7 @@ void testDataSystem()
     data_system.updateSystem();
     
     std::cout << "\n==> Clear the components:\n";
-    ECS::Clear();
+    ECS::Clear(true);
     ECS::DebugECS();
     data_system.updateSystem();
 }

@@ -157,11 +157,11 @@ public:
      * 
      * Note: Usually called by the engine when closing a game.
      */
-    static void Clear()
+    static void Clear(bool closeEngine)
     {
         for (IComponentManager* manager : managers)
         {
-            manager->ClearAllComponents();
+            manager->ClearAllComponents(closeEngine);
         }
     }
     
