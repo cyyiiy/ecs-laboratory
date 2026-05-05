@@ -120,6 +120,8 @@ If you truly hate the auto keyword, you can use
 `ComponentManager<SomeComponent, ComponentSublistSize<SomeComponent>::value>&` as it will compile into the defined
 sublist size (or the default one), but `auto` is easier.
 
+**Note:** It is also possible to get **non-const** references to components, if a read-write access is needed.
+
 
 ## Notes for the future
 
