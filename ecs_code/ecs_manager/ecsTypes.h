@@ -41,7 +41,9 @@ struct RawComponentHandle
 template <class T>
 struct ComponentHandle
 {
-    static_assert(std::is_base_of_v<class Component, T>, "T must be derived from Component.");
+    // Note: ComponentHandle can't assert that it's used only with classes derived from Component.
+    // It would prevent ComponentHandle in .h files to work with forward declaration.
+    //static_assert(std::is_base_of_v<class Component, T>, "T must be derived from Component.");
     
     RawComponentHandle raw;
     
