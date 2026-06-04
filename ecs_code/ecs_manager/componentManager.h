@@ -187,59 +187,69 @@ public:
         
         for (RawComponentHandle& handle : pendingComponents)
         {
-            // Step 1: Prepare the data
-            Sublist& sublist = *sublists[handle.sublistId];
-        
-            if (sublist.generations[handle.slotId] != handle.generation)
-                continue;
-            
-            const uint32_t packed_index = sublist.slotToPacked[handle.slotId]; // packed index of the pending deletion component
-            const uint32_t last_packed_index = static_cast<uint32_t>(sublist.aliveCount - 1); // packed index of the last alive component in the sublist
-            
-            T* component = sublist.packedGet(packed_index);
-            
-            // Step 2: Delete the pending deletion component
-            if constexpr (std::is_base_of_v<BehaviorComponent, T>)
-            {
-                component->exit();
-            }
-            component->~T();
-            
-            if (packed_index != last_packed_index)
-            {
-                // Step 3: Move the last alive component in the sublist to keep memory consistency
-                T* last_component = sublist.packedGet(last_packed_index);
-                
-                // Constructs a new T object at the memory address of the deleted component by using the move constructor
-                new (component) T(std::move(*last_component));
-                last_component->~T();
-                
-                // Step 4: Update the indirection table so the slot of the swapped component redirects to the new packed index
-                uint32_t swaped_comp_slot = sublist.packedToSlot[last_packed_index];
-                sublist.slotToPacked[swaped_comp_slot] = packed_index;
-                sublist.packedToSlot[packed_index] = swaped_comp_slot;
-            }
-            
-            // Step 4-bis: Properly resets the indirection table at indices of the deleted component
-            sublist.slotToPacked[handle.slotId] = INVALID_INDEX;
-            sublist.packedToSlot[last_packed_index] = INVALID_INDEX;
-            
-            // Step 5: Update sublist metadata
-            --sublist.aliveCount;
-            ++sublist.freeSlots;
-            
-            ++sublist.generations[handle.slotId];
-            sublist.usedSlots[handle.slotId] = false;
+            DestroyComponent(handle);
         }
         
         pendingComponents.clear();
+    }
+    
+    /** Instantly delete an existing component from the manager, without sending it to the pending state.
+     * Used by 'DeletePendingComponents' to individually delete each component.
+     * 
+     * @param handle The RawComponentHandle that allows to access the component to delete.
+     */
+    void DestroyComponent(const RawComponentHandle& handle)
+    {
+        // Step 1: Prepare the data
+        Sublist& sublist = *sublists[handle.sublistId];
+    
+        if (sublist.generations[handle.slotId] != handle.generation)
+            return;
+        
+        const uint32_t packed_index = sublist.slotToPacked[handle.slotId]; // packed index of the pending deletion component
+        const uint32_t last_packed_index = static_cast<uint32_t>(sublist.aliveCount - 1); // packed index of the last alive component in the sublist
+        
+        T* component = sublist.packedGet(packed_index);
+        
+        // Step 2: Delete the pending deletion component
+        if constexpr (std::is_base_of_v<BehaviorComponent, T>)
+        {
+            component->exit();
+        }
+        component->~T();
+        
+        if (packed_index != last_packed_index)
+        {
+            // Step 3: Move the last alive component in the sublist to keep memory consistency
+            T* last_component = sublist.packedGet(last_packed_index);
+            
+            // Constructs a new T object at the memory address of the deleted component by using the move constructor
+            new (component) T(std::move(*last_component));
+            last_component->~T();
+            
+            // Step 4: Update the indirection table so the slot of the swapped component redirects to the new packed index
+            uint32_t swaped_comp_slot = sublist.packedToSlot[last_packed_index];
+            sublist.slotToPacked[swaped_comp_slot] = packed_index;
+            sublist.packedToSlot[packed_index] = swaped_comp_slot;
+        }
+        
+        // Step 4-bis: Properly resets the indirection table at indices of the deleted component
+        sublist.slotToPacked[handle.slotId] = INVALID_INDEX;
+        sublist.packedToSlot[last_packed_index] = INVALID_INDEX;
+        
+        // Step 5: Update sublist metadata
+        --sublist.aliveCount;
+        ++sublist.freeSlots;
+        
+        ++sublist.generations[handle.slotId];
+        sublist.usedSlots[handle.slotId] = false;
     }
 
     /** Iterates on all active components of the manager.
      * 
      * Usage:
      * 
-     * manager.ForEach([](const Component& component) { component.doSomething(); });
+     * manager.ForEach([this](const Component& component) { this->foo(component); });
      * 
      * @param func The lambda to execute for each component.
      */

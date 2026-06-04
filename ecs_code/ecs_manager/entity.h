@@ -15,7 +15,7 @@
 struct StoredComponent
 {
     RawComponentHandle raw_handle;
-    void (*deleteFunction)(const RawComponentHandle&);
+    void (*deleteFunction)(const RawComponentHandle&, bool);
     
     // Custom == operator to allow std::find to work by searching a RawComponentHandle in a list of StoredComponent
     bool operator==(const RawComponentHandle& otherRaw) const
@@ -179,8 +179,10 @@ public:
      * Note: The deletion only occurs when `ECS::DeletePendings` is called (usually at the end of the frame).
      * 
      * Note: This function is automatically called by the game system when the entity is removed.
+     * 
+     * @param instantDestroy If true, will instantly destroy all components owned by this entity, without sending them to pending state.
      */
-    void clearAllComponents();
+    void clearAllComponents(bool instantDestroy);
     
     void debugEntity();
     

@@ -95,12 +95,21 @@ public:
      * 
      * @tparam T The component class.
      * @param rawHandle The RawComponentHandle that allows to access the component to delete.
+     * @param instantDestroy If true, will instantly destroy the component without sending it to pending state.
      */
     template <class T>
-    static void DeleteComponentRawHandle(const RawComponentHandle& rawHandle)
+    static void DeleteComponentRawHandle(const RawComponentHandle& rawHandle, bool instantDestroy)
     {
-        const ComponentHandle<T> handle(rawHandle);
-        Manager<T>().DeleteComponent(handle);
+        
+        if (instantDestroy)
+        {
+            Manager<T>().DestroyComponent(rawHandle);
+        }
+        else
+        {
+            const ComponentHandle<T> handle(rawHandle);
+            Manager<T>().DeleteComponent(handle);
+        }
     }
 
     /** Get a reference to an existing component in the ECS.

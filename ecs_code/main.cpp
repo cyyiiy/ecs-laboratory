@@ -100,9 +100,8 @@ void testEntities()
     entity2.debugEntity();
     ECS::DebugECS();
     
-    std::cout << "\n==> Clear components on this entity and execute ECS Delete Pendings:\n";
-    entity2.clearAllComponents();
-    ECS::DeletePendings();
+    std::cout << "\n==> Clear components on this entity with instant destroy:\n";
+    entity2.clearAllComponents(true);
     ECS::DebugECS();
     
     std::cout << "\n==> Remove the component from the first entity:\n";
@@ -167,8 +166,8 @@ void testDataSystem()
 int main()
 {
     //testComponents();
-    //testEntities();
-    testDataSystem();
+    testEntities();
+    //testDataSystem();
     
     return 0;
 }
