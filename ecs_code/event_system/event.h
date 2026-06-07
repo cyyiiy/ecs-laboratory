@@ -43,6 +43,11 @@ class Event : public EventBase
     };
     
 public:
+    ~Event() override
+    {
+        removeAllSubscriptions();
+    }
+    
     /** Subscribe an observer to an event.
      * 
      * @tparam T The real type of the observer object subscribing to the event.
@@ -99,6 +104,16 @@ public:
             void* concrete = reinterpret_cast<char*>(binding->bindingOwner) - binding->byte_offset;
             binding->callbackFunction(concrete, args...);
         }
+    }
+    
+    /** Unsubscribe every observer from this event. */
+    void removeAllSubscriptions()
+    {
+        for (const auto& binding : bindings)
+        {
+            binding.bindingOwner->untrackEvent(this);
+        }
+        bindings.clear();
     }
     
     
