@@ -1,10 +1,12 @@
 #include <iostream>
 #include "ecs_manager/ecs.h"
 #include "ecs_manager/entity.h"
+#include "event_system/event.h"
 #include "ecs_example/componentA.h"
 #include "ecs_example/componentB.h"
 #include "ecs_example/componentDataA.h"
 #include "ecs_example/dataSystemA.h"
+#include "ecs_example/componentObserver.h"
 
 
 void testComponents()
@@ -68,9 +70,32 @@ void testComponents()
     std::cout << "\n==> Execute ECS Update:\n";
     ECS::Update(0.1f);
     
-    std::cout <<"\n==> Execute ECS Clear:\n";
+    std::cout << "\n==> Execute ECS Clear:\n";
     ECS::Clear(true);
     ECS::DebugECS();
+    
+    std::cout << "\n==> Create two components of class ComponentObserver:\n";
+    ComponentHandle<ComponentObserver> component_observer_1 = ECS::CreateComponent<ComponentObserver>();
+    ComponentHandle<ComponentObserver> component_observer_2 = ECS::CreateComponent<ComponentObserver>();
+    ECS::DebugECS();
+    
+    std::cout << "\n==> Subscribe the second one to an event and call it:\n";
+    Event<std::string, int> test_event;
+    ComponentObserver& component_observer = ECS::GetComponent(component_observer_2);
+    test_event.subscribe(&component_observer, &ComponentObserver::callbackFunction);
+    test_event.broadcast("Test Event", 1);
+    
+    std::cout << "\n==> Delete the first component observer (move the second one in memory):\n";
+    ECS::DeleteComponent(component_observer_1);
+    ECS::DeletePendings();
+    ECS::DebugECS();
+    test_event.broadcast("Test Event", 2);
+    
+    std::cout << "\n==> Delete the second component observer (unsubscribe the event):\n";
+    ECS::DeleteComponent(component_observer_2);
+    ECS::DeletePendings();
+    ECS::DebugECS();
+    test_event.broadcast("Test Event", 3);
 }
 
 void testEntities()
@@ -165,8 +190,8 @@ void testDataSystem()
 
 int main()
 {
-    //testComponents();
-    testEntities();
+    testComponents();
+    //testEntities();
     //testDataSystem();
     
     return 0;

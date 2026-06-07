@@ -21,17 +21,20 @@
   <ItemGroup>
     <ClCompile Include="ecs_code\ecs_example\componentA.cpp" />
     <ClCompile Include="ecs_code\ecs_example\componentB.cpp" />
+    <ClCompile Include="ecs_code\ecs_example\componentObserver.cpp" />
     <ClCompile Include="ecs_code\ecs_example\dataSystemA.cpp" />
     <ClCompile Include="ecs_code\ecs_manager\behaviorComponent.cpp" />
     <ClCompile Include="ecs_code\ecs_manager\component.cpp" />
     <ClCompile Include="ecs_code\ecs_manager\ecs.cpp" />
     <ClCompile Include="ecs_code\ecs_manager\entity.cpp" />
+    <ClCompile Include="ecs_code\event_system\observer.cpp" />
     <ClCompile Include="ecs_code\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ecs_code\ecs_example\componentA.h" />
     <ClInclude Include="ecs_code\ecs_example\componentB.h" />
     <ClInclude Include="ecs_code\ecs_example\componentDataA.h" />
+    <ClInclude Include="ecs_code\ecs_example\componentObserver.h" />
     <ClInclude Include="ecs_code\ecs_example\dataSystemA.h" />
     <ClInclude Include="ecs_code\ecs_manager\behaviorComponent.h" />
     <ClInclude Include="ecs_code\ecs_manager\component.h" />
@@ -40,6 +43,8 @@
     <ClInclude Include="ecs_code\ecs_manager\ecs.h" />
     <ClInclude Include="ecs_code\ecs_manager\ecsTypes.h" />
     <ClInclude Include="ecs_code\ecs_manager\entity.h" />
+    <ClInclude Include="ecs_code\event_system\event.h" />
+    <ClInclude Include="ecs_code\event_system\observer.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

@@ -3,7 +3,8 @@
 > Require C++ 17
 
 This repository contains an isolated version of the ECS made for my own game engine, as well as some example
-code to test it.
+code to test it. It also contains a built-in event system, specially made to work with components that don't
+have a static memory address (the ECS system moves them internally).
 
 
 ## Managers & Sublists, how are the components stored?
@@ -121,6 +122,38 @@ If you truly hate the auto keyword, you can use
 sublist size (or the default one), but `auto` is easier.
 
 **Note:** It is also possible to get **non-const** references to components, if a read-write access is needed.
+
+
+## The built-in event system
+
+Having an event-system can be very useful in a game engine, and having components that are able to subscribe one of 
+their function as a callback to an event is important in my ECS design. \
+The event system is quite easy to use:
+```c++
+class Example : public Component, public Observer
+{
+public:
+    void foo(int param);
+}
+
+int main()
+{
+    Event<int> test_event;
+    ComponentHandle<Example> handle = ECS::CreateComponent<Example>();
+    Example& comp = ECS::GetComponent(handle);
+    
+    test_event.subscribe(&comp, &Example::foo);
+    test_event.broadcast(3);
+}
+```
+
+This event system has been made specially to work with components that are not static in memory (the ECS system moves
+them when other components are deleted to keep all existing components of a class aligned in memory). \
+This works with two key features:
+- When an `Observer` is deleted, it automatically unsubscribe from all events it was subscribed to.
+- When an `Observer` is copied or moved, it automatically copy or steal all subscriptions the original had.
+
+This allow the event to always keep a reference to the correct object whenever a logical move is performed internally.
 
 
 ## Notes for the future
