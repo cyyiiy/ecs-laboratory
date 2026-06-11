@@ -38,6 +38,14 @@ private:
      */
     void untrackEvent(EventBase* event);
 
+    /** Replace a stale event pointer with an updated one.
+    * Automatically called by Event's move constructor.
+    * 
+    * @param oldEvent The stale event pointer.
+    * @param newEvent The updated event pointer.
+    */
+    void replaceEvent(EventBase* oldEvent, EventBase* newEvent);
+
     /** Unsubscribed this event from all event it has tracked. */
     void unregisterFromAll();
 

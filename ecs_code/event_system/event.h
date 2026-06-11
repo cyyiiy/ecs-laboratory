@@ -43,11 +43,75 @@ class Event : public EventBase
     };
     
 public:
+    Event() = default;
+
     ~Event() override
     {
         removeAllSubscriptions();
     }
-    
+
+    Event(const Event& other) : bindings(other.bindings)
+    {
+        // Copy constructor -> make the observers also track the new copied event
+        for (auto& binding : bindings)
+        {
+            binding.bindingOwner->trackEvent(this);
+        }
+    }
+
+    Event& operator=(const Event& other)
+    {
+        // Copy assignment operator
+        if (this == &other) return *this;
+
+        for (auto& binding : bindings)
+        {
+            // Detach from current observers
+            binding.bindingOwner->untrackEvent(this);
+        }
+
+        bindings = other.bindings;
+
+        for (auto& binding : bindings)
+        {
+            // Attach to new observers
+            binding.bindingOwner->trackEvent(this);
+        }
+
+        return *this;
+    }
+
+    Event(Event&& other) noexcept : bindings(std::move(other.bindings))
+    {
+        // Move constructor -> make the observers update their pointers to the moved event
+        for (auto& binding : bindings)
+        {
+            binding.bindingOwner->replaceEvent(&other, this);
+        }
+    }
+
+    Event& operator=(Event&& other) noexcept
+    {
+        // Move assignment operator
+        if (this == &other) return *this;
+
+        for (auto& binding : bindings)
+        {
+            // Detach from current observers
+            binding.bindingOwner->untrackEvent(this);
+        }
+
+        bindings = std::move(other.bindings);
+
+        for (auto& binding : bindings)
+        {
+            // Update the observers pointers to this (the moved event)
+            binding.bindingOwner->replaceEvent(&other, this);
+        }
+        
+        return *this;
+    }
+
     /** Subscribe an observer to an event.
      * 
      * @tparam T The real type of the observer object subscribing to the event.

@@ -48,6 +48,18 @@ void Observer::untrackEvent(EventBase* event)
     events.erase(std::remove(events.begin(), events.end(), event), events.end());
 }
 
+void Observer::replaceEvent(EventBase* oldEvent, EventBase* newEvent)
+{
+    for (EventBase*& event : events)
+    {
+        if (event == oldEvent)
+        {
+            event = newEvent;
+            return;
+        }
+    }
+}
+
 void Observer::unregisterFromAll()
 {
     if (events.empty()) return;
