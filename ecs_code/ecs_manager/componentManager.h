@@ -129,8 +129,7 @@ public:
     {
         T& component = GetComponent(handle); // Throw error if the component doesn't exist
         
-        if (component.getPendingDelete())
-            throw std::runtime_error("Component is already pending deletion.");
+        if (component.getPendingDelete()) return;
             
         component.setPendingDelete(true);
         
@@ -187,7 +186,10 @@ public:
         
         for (RawComponentHandle& handle : pendingComponents)
         {
-            DestroyComponent(handle);
+            if (IsComponentHandleValid(ComponentHandle<T>(handle))) // The component could've already been destroyed by another source
+            {
+                DestroyComponent(handle);
+            }
         }
         
         pendingComponents.clear();
