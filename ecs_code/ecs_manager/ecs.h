@@ -144,7 +144,13 @@ public:
      */
     static void Update(float deltaTime)
     {
-        for (IBehaviorManager* behavior_manager : behaviorManagers)
+        // Create a stable vector of managers so if the original vector is modified during the update, we don't fall in UB
+        // (This can happen if a component of an unregistered type is created by another component during an update)
+        std::vector<IBehaviorManager*> behavior_managers_safe;
+        behavior_managers_safe.reserve(behaviorManagers.size());
+        for (IBehaviorManager* behavior_manager : behaviorManagers) behavior_managers_safe.push_back(behavior_manager);
+
+        for (IBehaviorManager* behavior_manager : behavior_managers_safe)
         {
             behavior_manager->UpdateComponents(deltaTime);
         }
